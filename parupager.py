@@ -3,7 +3,6 @@
 import os
 import sys
 from colorama import Fore, Back, Style
-from click import echo_via_pager
 
 packages = []
 max_name = 0
@@ -28,27 +27,34 @@ if len(pkg) != 0:
 	packages.append(pkg)
 
 SEPERATOR = " | "
+INDENT = "  "
 cols, rows = os.get_terminal_size()
-max_desc = cols - max_name - len(SEPERATOR) - 2
+max_desc = cols - max_name - len(SEPERATOR) - len(INDENT)
 color = Fore.CYAN
 
 if max_desc < max_name:
-	print('BADNESS 1000')
+	print('Your terminal is likely too small to print this')
+if max_desc < 10:
+	print('BADNESS 10000 - enbigger your terminal')
+	os.exit(1)
 
 current_repo = ""
 for package in packages:
+	# Handle repository
 	reposplit = package[0].split('/')
 	if reposplit[0] != current_repo:
 		current_repo = reposplit[0]
-		echo_via_pager(Fore.YELLOW + ''.ljust(cols, '-') + f'\n    {current_repo}\n' + ''.ljust(cols, '-'))
+		print(Fore.YELLOW + ''.ljust(cols, '-') + f'\n    {current_repo}\n' + ''.ljust(cols, '-') + Style.RESET_ALL)
 	package[0] = reposplit[1]
 
+	# Toggle color after each package
 	if color == Style.RESET_ALL:
 		color = Fore.CYAN
 	else:
 		color = Style.RESET_ALL
-	print(color, end=' ')
+	print(color, end='')
 
+	# Print a package name, then its description
 	print(package[0].ljust(max_name), end='')
 	for packagedesc in package[1:]:
 		first_desc = True
@@ -57,8 +63,8 @@ for package in packages:
 				first_desc = False
 				print(Style.RESET_ALL + SEPERATOR + color, end='')
 			else:
-				print(''.ljust(max_name), end=' ')
-				print(Style.RESET_ALL + SEPERATOR + color, end='  ')
+				print(''.ljust(max_name), end='')
+				print(Style.RESET_ALL + SEPERATOR + color, end=INDENT)
 			if len(packagedesc) > max_desc:
 				split_index = packagedesc[:max_desc].rfind(' ')
 				if split_index == 0:
